@@ -1,9 +1,6 @@
 package com.chaincare.chaincare.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -13,15 +10,17 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-@Table(name = "pacientes")
 @Entity
+@Table(name = "pacientes")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Paciente {
     @Id
-    @Column(name = "id", nullable = false, columnDefinition = "PRIMARY KEY AUTO_INCREMENT")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @NotNull
+    @Column(name = "id")
     private Integer id;
 
     @Size(max = 20)
@@ -48,17 +47,16 @@ public class Paciente {
     @Column(name = "cpf", nullable = false, unique = true, length = 14)
     private String cpf;
 
-    @NotNull
     @Size(max = 20)
     @Column(name = "telefone", length = 20)
     private String telefone;
 
     @NotNull
-    @Column(name = "sexo", length = 1, columnDefinition = "CHECK (Sexo IN ('M', 'F'))")
+    @Column(name = "sexo", length = 1, nullable = false)
     private Character sexo;
 
     @NotNull
-    @Column(name = "data_nasc")
+    @Column(name = "data_nasc", nullable = false)
     private LocalDate dataNasc;
 
     @Size(max = 50)
