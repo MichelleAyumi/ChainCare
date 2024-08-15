@@ -13,5 +13,5 @@ import java.io.Serializable;
 @EqualsAndHashCode
 public class LaudosRemediosId implements Serializable {
     private Integer laudoID;
-    private Integer remedioID;
+    private Integer remedioID = 0;
 }

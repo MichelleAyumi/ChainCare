@@ -19,7 +19,7 @@ public class Remedios {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @NotNull
     @Column(name = "id")
-    private Integer id;
+    private Integer id = 0;
 
     @Size(max = 100)
     @NotNull
