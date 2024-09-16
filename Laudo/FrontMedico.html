@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Doctor Dashboard</title>
+    <link rel="stylesheet" href="FrontMedico.css">
+    <link rel="stylesheet" href="FrontMedico.js">
+    
+</head>
+<body>
+
+<div class="container">
+    <h1>Informações do Médico</h1>
+    
+    <div class="doctor-info">
+        <h2>Informações do Médico</h2>
+        <p>Nome: Dr. John Doe</p>
+        <p>Especialidade: Cardiology</p>
+        <p>CRM: 123456</p>
+    </div>
+
+    <div class="patient-search">
+        <h2>Pesquisa de Paciente</h2>
+        <input type="text" placeholder="Enter patient name or CNS" id="patientSearch">
+        <button class="button" onclick="searchPatient()">Buscar</button>
+    </div>
+
+    <div class="patient-report" id="patientReport" style="display:none;">
+        <h2>Última Consulta</h2>
+        <p>Data da Consulta: <span id="consultationDate"></span></p>
+        <p>Nome da Clinica: <span id="clinicName"></span></p>
+        <p>Convenio: <span id="insurance"></span></p>
+        <p>Médico: <span id="reportDoctor"></span></p>
+        <p>Sintomas Relatados: <span id="symptoms"></span></p>
+        <p>Tratamento sugerido: <span id="treatment"></span></p>
+        <p>Prescrição de medicamento: <span id="medication"></span></p>
+    </div>
+
+    <button class="button" onclick="logout()">Sair</button>
+</div>
+<script>function searchPatient() {
+    // Simulated patient data retrieval
+        document.getElementById('patientReport').style.display = 'block';
+        document.getElementById('consultationDate').innerText = '01/01/2023 - 01/02/2023';
+        document.getElementById('clinicName').innerText = 'Health Clinic';
+        document.getElementById('insurance').innerText = 'Health Insurance Co.';
+        document.getElementById('reportDoctor').innerText = 'Dr. John Doe';
+        document.getElementById('symptoms').innerText = 'Chest Pain';
+        document.getElementById('treatment').innerText = 'Rest and Medication';
+        document.getElementById('medication').innerText = 'Aspirin';
+    }
+
+    function logout() {
+    // Logout functionality
+        alert('You have logged out.');
+    }
+</script>
+</body>
+</html>
