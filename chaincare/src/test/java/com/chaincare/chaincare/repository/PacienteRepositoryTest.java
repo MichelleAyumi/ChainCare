@@ -23,14 +23,22 @@ public class PacienteRepositoryTest {
     @Test
     @Order(1)
     void save () {
-        Paciente savedPaciente = pacienteRepository.save(PacienteBuilder.build().now());
+        Paciente savedPaciente = PacienteBuilder.build().now();
+        savedPaciente.setCns("1111111");
+        savedPaciente.setCpf("11111111111");
+        savedPaciente.setRg("111111111");
+        pacienteRepository.save(savedPaciente);
         assertNotNull(savedPaciente);
     }
 
     @Test
     @Order(2)
-    void load () {
-        Paciente savedPaciente = pacienteRepository.save(PacienteBuilder.build().now());
+    void findById () {
+        Paciente savedPaciente = PacienteBuilder.build().now();
+        savedPaciente.setCns("2222222");
+        savedPaciente.setCpf("22222222222");
+        savedPaciente.setRg("222222222");
+        pacienteRepository.save(savedPaciente);
         assertNotNull(savedPaciente);
 
         Optional<Paciente> loadedPaciente = pacienteRepository.findById(savedPaciente.getId());
@@ -40,28 +48,25 @@ public class PacienteRepositoryTest {
     @Test
     @Order(3)
     void loadAll () {
-        List<Paciente> users = pacienteRepository.findAll();
-        assertNotNull(users);
+        List<Paciente> pacientes = pacienteRepository.findAll();
+        assertNotNull(pacientes);
     }
 
     @Test
     @Order(4)
     void update () {
-        Paciente savedPaciente = pacienteRepository.save(PacienteBuilder.build().now());
-        assertNotNull(savedPaciente);
+        Paciente firstPaciente = pacienteRepository.findAll().getFirst();
 
-        savedPaciente.setNome("Lívia ALTERADO");
-        Paciente updatedPaciente = pacienteRepository.save(savedPaciente);
+        firstPaciente.setNome("Lívia ALTERADO");
+        Paciente updatedPaciente = pacienteRepository.save(firstPaciente);
         assertEquals("Lívia ALTERADO", updatedPaciente.getNome());
     }
 
     @Test
     @Order(5)
     void delete () {
-        Paciente savedPaciente = pacienteRepository.save(PacienteBuilder.build().now());
-        assertNotNull(savedPaciente);
-
-        pacienteRepository.delete(savedPaciente);
-        assertFalse(pacienteRepository.existsById(savedPaciente.getId()));
+        Paciente firstPaciente = pacienteRepository.findAll().getFirst();
+        pacienteRepository.delete(firstPaciente);
+        assertFalse(pacienteRepository.existsById(firstPaciente.getId()));
     }
 }
