@@ -11,7 +11,11 @@ import lombok.Setter;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "pacientes")
+@Table(name = "pacientes", uniqueConstraints = {
+        @UniqueConstraint(name = "cns_unique", columnNames = "cns"),
+        @UniqueConstraint(name = "rg_unique", columnNames = "rg"),
+        @UniqueConstraint(name = "cpf_unique", columnNames = "cpf")
+})
 @Getter
 @Setter
 @AllArgsConstructor
@@ -23,7 +27,7 @@ public class Paciente {
     @Column(name = "id")
     private Integer id = 0;
 
-    @Size(max = 20)
+    @Size(max = 7,min = 7)
     @NotNull
     @Column(name = "cns", unique = true, nullable = false, length = 20)
     private String cns;
@@ -38,12 +42,12 @@ public class Paciente {
     private String endereco;
 
     @NotNull
-    @Size(max = 20)
+    @Size(max = 9,min = 9)
     @Column(name = "rg", nullable = false, unique = true, length = 20)
     private String rg;
 
     @NotNull
-    @Size(max = 14)
+    @Size(max = 11,min = 11)
     @Column(name = "cpf", nullable = false, unique = true, length = 14)
     private String cpf;
 
@@ -53,7 +57,8 @@ public class Paciente {
 
     @NotNull
     @Column(name = "sexo", length = 1, nullable = false)
-    private Character sexo;
+    @Enumerated(EnumType.STRING)
+    private Sexo sexo;
 
     @NotNull
     @Column(name = "data_nasc", nullable = false)
