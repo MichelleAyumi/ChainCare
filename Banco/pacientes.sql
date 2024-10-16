@@ -1,0 +1,14 @@
+CREATE TABLE Pacientes (
+    ID INT PRIMARY KEY AUTO_INCREMENT,
+    CNS VARCHAR(20) UNIQUE NOT NULL,
+    Nome VARCHAR(100) NOT NULL,
+    Endereco VARCHAR(255),
+    RG VARCHAR(20) UNIQUE NOT NULL,
+    CPF VARCHAR(14) UNIQUE NOT NULL,
+    Telefone VARCHAR(20),
+    Sexo CHAR(1) CHECK (Sexo IN ('M', 'F')), 
+    Data_Nasc DATE,
+    Status VARCHAR(50),
+    Convenio VARCHAR(100)
+);
+

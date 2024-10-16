@@ -1,0 +1,7 @@
+CREATE TABLE LaudosRemedios (
+    LaudoID INT,
+    RemedioID INT,
+    PRIMARY KEY (LaudoID, RemedioID),
+    FOREIGN KEY (LaudoID) REFERENCES Laudos(ID) ON DELETE CASCADE,
+    FOREIGN KEY (RemedioID) REFERENCES Remedios(ID) ON DELETE CASCADE
+);
