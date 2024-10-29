@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de paciente</title>
     <link rel="stylesheet" href="pacienteStyle.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
     <h1>Formulário de Cadastro de Paciente</h1>
-    <form action="#" method="post">
+    <form id="patientForm">
         <label for="name">Nome:</label>
         <input type="text" id="name" name="name" required><br><br>
 
@@ -29,9 +30,9 @@
 
         <label for="gender">Sexo:</label>
         <select id="gender" name="gender" required>
-            <option value="male">Masculino</option>
-            <option value="female">Feminino</option>
-            <option value="other">Outros</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+            <option value="O">Outros</option>
         </select><br><br>
 
         <label for="dob">Data de Nascimento:</label>
@@ -46,10 +47,8 @@
         <label for="insurance">Convenio:</label>
         <input type="text" id="insurance" name="insurance" required><br><br>
 
-        <button type="submit">Registrar</button>
-        <a href="https://blockchain-database-link.com" target="_blank">
-            <button type="button">Salvar na blockchain</button>
-        </a>
+        <button type="button" id="registerBtn">Registrar</button>
     </form>
+    <script src="paciente.js"></script>
 </body>
 </html>
