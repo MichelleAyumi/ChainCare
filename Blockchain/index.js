@@ -42,7 +42,7 @@ app.put('/:cnsPaciente/novo-laudo', (req, res) => {
         res.status(200).json({ success: `Novo laudo adicionado ao cns ${cnsPaciente}`});
         p2pServer.syncChains();
     } else {
-        res.status(400).json({ error: 'Paciente não encontrado' });
+        res.status(404).json({ error: 'Paciente não encontrado' });
     }
 });
 
