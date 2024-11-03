@@ -1,13 +1,11 @@
 const express = require('express');
-const Blockchain = require('../classes/blockchain');
+const Blockchain = require('./blockchain');
 const HTTP_PORT = process.env.HTTP_PORT || 3001; // porta para rodar a aplicação
 const P2pServer = require('./p2p-server');
-const TransactionPool = require('../wallet/transaction-pool');
 
 const app = express();
 const bc = new Blockchain();
-const tp= new TransactionPool();
-const p2pServer = new P2pServer(bc, tp);
+const p2pServer = new P2pServer(bc);
 
 app.use(express.json());
 
