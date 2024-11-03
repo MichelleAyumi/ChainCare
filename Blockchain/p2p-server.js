@@ -14,7 +14,7 @@ const MESSAGE_TYPES = {
 };
 
 class P2pServer {
-    constructor(blockchain, transactionPool) {
+    constructor(blockchain) {
         this.blockchain = blockchain;
         this.sockets = [];
     }
