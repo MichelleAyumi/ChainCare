@@ -1,5 +1,5 @@
-const Blockchain = require('./blockchain');
-const Block = require('./block');
+const Blockchain = require('../classes/blockchain');
+const Block = require('../classes/block');
 
 describe('Blockchain', () => {
     let bc;
@@ -15,10 +15,30 @@ describe('Blockchain', () => {
     });
 
     it('adds a new block', () => {
-        const data = 'foo';
-        bc.addBlock(data);
+        const laudo = 'foo';
+        bc.addBlock(laudo, "");
 
-        expect(bc.chain[bc.chain.length-1].data).toEqual(data);
+        expect(bc.chain[bc.chain.length-1].laudo).toEqual(laudo);
+    });
+
+    it('updates the laudo from a block', () => {
+        const cnsPaciente = 108342;
+        const laudo = 'foo';
+        const newData = 'bar';
+        bc.addBlock(laudo, cnsPaciente);
+        bc.addOrUpdateBlock(bc.chain[1].cnsPaciente, newData);
+
+        expect(bc.chain[bc.chain.length-1].laudo).toEqual([laudo, newData]);
+    });
+
+    it('does not update the laudo from a block', () => {
+        const cnsPaciente = 108342;
+        const laudo = 'foo';
+        const newLaudo = 'bar';
+        bc.addBlock(laudo, cnsPaciente);
+        bc.updateBlock(108341, newLaudo);
+
+        expect(bc.chain[bc.chain.length-1].laudo).toEqual([laudo]);
     });
 
     it('validates a valid chain', () => { // não está funcionando...
@@ -27,13 +47,13 @@ describe('Blockchain', () => {
     });
 
     it('invalidates a chain with a corrupted genesis block', () => {
-        bc2.chain[0].data = 'Bad data';
+        bc2.chain[0].laudo = 'Bad laudo';
         expect(bc.isValidChain(bc2.chain)).toBe(false);
     });
 
     it('invalidates a corrupt chain', () => {
         bc2.addBlock('foo');
-        bc2.chain[1].data = 'Not foo';
+        bc2.chain[1].laudo = 'Not foo';
 
         expect(bc.isValidChain(bc2.chain)).toBe(false);
     });
