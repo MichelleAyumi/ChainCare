@@ -17,14 +17,20 @@ app.get('/laudos', (req, res) => {
 
 app.post('/:cnsPaciente/novo-paciente', (req, res) => {
     const cnsPaciente = Object.values(req.params)[0];
-    const block = bc.addBlock(req.body, cnsPaciente);
-    if (block !== null) {
-        p2pServer.syncChains();
-        res.status(200).redirect('/laudos');
-        console.log(`Novo paciente adicionado: ${block.toString()}`);
+
+    if (bc.lookForCns(cnsPaciente) == null) {
+        const block = bc.addBlock(req.body, cnsPaciente);
+        if (block !== null) {
+            p2pServer.syncChains();
+            res.status(200).redirect('/laudos');
+            console.log(`Novo paciente adicionado: ${block.toString()}`);
+        } else {
+            res.status(400).json({ error: 'Não foi possível adicionar paciente' });
+            console.log(`Não foi possível adicionar paciente`);
+        }
     } else {
-        res.status(400).json({ error: 'Não foi possível adicionar paciente' });
-        console.log(`Não foi possível adicionar paciente`);
+        res.status(400).json({ error: 'Paciente já cadastrado' });
+        console.log(`Paciente já cadastrado`);
     }
 })
 
