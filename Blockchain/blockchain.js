@@ -5,9 +5,38 @@ class Blockchain {
         this.chain = [Block.genesis()];
     }
 
-    addBlock(data) {
-        const block = Block.mineBlock(this.chain[this.chain.length - 1], data);
+    addBlock(laudo, cnsPaciente) {
+        if (!Array.isArray(laudo)) {
+            laudo = [laudo];
+        }
+        const block = Block.mineBlock(this.chain[this.chain.length - 1], cnsPaciente, laudo);
         this.chain.push(block);
+
+        return block;
+    }
+
+    lookForCns(cnsPaciente) {
+        for (let block of this.chain) {
+            if (block.cnsPaciente === cnsPaciente) {
+                return block;
+            }
+        }
+
+        return null;
+    }
+
+    updateBlock(cnsPaciente, laudo) {
+        let block = this.lookForCns(cnsPaciente);
+
+        if (block !== null) {
+            if (!Array.isArray(laudo)) {
+                block.laudo.push(laudo); // se laudo não for um array, adiciona o laudo ao array
+            } else {
+                block.laudo.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
+            }
+        } else {
+            console.log('Paciente não encontrado');
+        }
 
         return block;
     }

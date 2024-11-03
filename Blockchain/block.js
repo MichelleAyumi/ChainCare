@@ -1,12 +1,13 @@
-const ChainUtil = require('./chain-util');
-const {DIFFICULTY, MINE_RATE} = require('./config');
+const ChainUtil = require('../chain-util');
+const {DIFFICULTY, MINE_RATE} = require('../config');
 
 class Block {
-    constructor(timestamp, lastHash, hash, data, nonce, difficulty) {
+    constructor(timestamp, lastHash, hash, cnsPaciente, laudo, nonce, difficulty) {
         this.timestamp = timestamp;
         this.lastHash = lastHash;
         this.hash = hash;
-        this.data = data;
+        this.cnsPaciente = cnsPaciente;
+        this.laudo = laudo;
         this.nonce = nonce;
         this.difficulty = difficulty || DIFFICULTY;
     }
@@ -16,16 +17,17 @@ class Block {
             timestamp = "${this.timestamp}"
             lastHash = "${this.lastHash}"
             hash = "${this.hash}"
-            data = "${this.data}"
+            cnsPaciente = "${this.cnsPaciente}"
+            laudo = "${this.laudo}"
             difficulty = "${this.difficulty}"
             nonce = "${this.nonce}"`;
     }
 
     static genesis() {
-        return new this('Genesis time', '', 'firstHash', [], 0, DIFFICULTY);
+        return new this('Genesis time', '', 'firstHash', 'cns', [], 0, DIFFICULTY);
     }
 
-    static mineBlock (lastBlock, data) {
+    static mineBlock (lastBlock, cnsPaciente, laudo) {
         let hash, timestamp;
         const lastHash = lastBlock.hash;
         let {difficulty} = lastBlock;
@@ -35,20 +37,20 @@ class Block {
             nonce++;
             timestamp = Date.now();
             difficulty = Block.adjustDifficulty(lastBlock, timestamp);
-            hash = Block.hash(timestamp, lastHash, data, nonce, difficulty);
+            hash = Block.hash(timestamp, lastHash, cnsPaciente, laudo, nonce, difficulty);
         } while (hash.substring(0, difficulty) !== '0'.repeat(difficulty));
 
 
-        return new this(timestamp, lastHash, hash, data, nonce, difficulty);
+        return new this(timestamp, lastHash, hash, cnsPaciente, laudo, nonce, difficulty);
     }
 
-    static hash (timestamp, lastHash, data, nonce, difficulty) {
-        return ChainUtil.hash(`${timestamp}${lastHash}${data}${nonce}${difficulty}`).toString();
+    static hash (timestamp, lastHash, cnsPaciente, laudo, nonce, difficulty) {
+        return ChainUtil.hash(`${timestamp}${lastHash}${cnsPaciente}${laudo}${nonce}${difficulty}`).toString();
     }
 
     static blockHash (block) {
-        const {timestamp, lastHash, data, nonce, difficulty} = block;
-        return Block.hash(timestamp, lastHash, data, nonce, difficulty);
+        const {timestamp, lastHash, cnsPaciente, laudo, nonce, difficulty} = block;
+        return Block.hash(timestamp, lastHash, cnsPaciente, laudo, nonce, difficulty);
     }
 
     static adjustDifficulty(lastBlock, currentTimestamp) {
