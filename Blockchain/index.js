@@ -47,7 +47,7 @@ app.put('/:cnsPaciente/novo-laudo', (req, res) => {
     const cnsPaciente = Object.values(req.params)[0];
     const block = bc.updateBlock(cnsPaciente, req.body);
     if (block !== null) {
-        console.log(`Novo laudo adicionado ao cns ${cnsPaciente}: ${block.toString()}`);
+        console.log(`Novo laudo adicionado ao cns ${cnsPaciente}`);
         res.status(200).json({ success: `Novo laudo adicionado ao cns ${cnsPaciente}`});
         p2pServer.syncChains();
     } else {
