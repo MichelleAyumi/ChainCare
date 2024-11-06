@@ -13,6 +13,17 @@ app.get('/laudos', (req, res) => {
     res.json(bc.chain);
 });
 
+app.get('/laudos/:cns', (req, res) => {
+    const cnsPaciente = Object.values(req.params)[0];
+    const pacienteBlock = bc.lookForCns(cnsPaciente);
+
+    if (pacienteBlock !== null) {
+        res.json(pacienteBlock.laudo);
+    } else {
+        res.status(404).json({error: 'Paciente não encontrado'});
+    }
+});
+
 app.post('/:cnsPaciente/novo-paciente', (req, res) => {
     const cnsPaciente = Object.values(req.params)[0];
 
