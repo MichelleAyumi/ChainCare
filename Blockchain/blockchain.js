@@ -31,8 +31,10 @@ class Blockchain {
         if (block !== null) {
             if (!Array.isArray(laudo)) {
                 block.laudo.push(laudo); // se laudo não for um array, adiciona o laudo ao array
+                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
             } else {
                 block.laudo.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
+                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
             }
         } else {
             console.log('Paciente não encontrado');
