@@ -7,7 +7,7 @@ class Block {
         this.lastHash = lastHash;
         this.hash = hash;
         this.cnsPaciente = cnsPaciente;
-        this.laudo = laudo;
+        this.laudo = laudo || [];
         this.nonce = nonce;
         this.difficulty = difficulty || DIFFICULTY;
     }
