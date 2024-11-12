@@ -72,7 +72,7 @@ $(document).ready(function() {
             url: '../Backend/logout.php',
             type: 'POST',
             success: function() {
-                window.location.href = '../Login/.html';
+                window.location.href = '../Login/index.html';
             },
             error: function() {
                 alert('Erro ao sair da sessão');
