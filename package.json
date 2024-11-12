@@ -1,0 +1,17 @@
+{
+  "scripts": {
+    "test": "jest --watchAll",
+    "start": "node ./Blockchain",
+    "dev": "node ./Blockchain"
+  },
+  "dependencies": {
+    "crypto-js": "^4.2.0",
+    "elliptic": "^6.6.0",
+    "express": "^4.21.1",
+    "uuid": "^11.0.2",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}
