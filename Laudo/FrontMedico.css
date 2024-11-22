@@ -30,3 +30,35 @@
         .button:hover {
             background-color: #0056b3;
         }
+
+        .botoes{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .button4 {
+            display: inline;
+            width: 22%;
+            padding: 10px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .patient-search{
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #patientSearch{
+            width: 30%;
+        }
+
+        #searchPatientBtn{
+            width: 65%;
+        }
