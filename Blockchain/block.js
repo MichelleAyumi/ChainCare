@@ -24,7 +24,7 @@ class Block {
     }
 
     static genesis() {
-        return new this('Genesis time', '', 'firstHash', 'cns', [], 0, DIFFICULTY);
+        return new this(123456789, 0, 123, 0, [], 0, DIFFICULTY);
     }
 
     static mineBlock (lastBlock, cnsPaciente, laudo) {
