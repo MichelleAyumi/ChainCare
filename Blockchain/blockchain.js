@@ -1,8 +1,25 @@
 const Block = require('./block');
+const Database = require('./database');
+
+const dbConfig = Database.credentials();
+const db = new Database(dbConfig);
+
 
 class Blockchain {
     constructor() {
         this.chain = [Block.genesis()];
+
+        // insere no banco da blockchain
+        db.query('INSERT INTO block SET ?', {
+            hash: this.chain[0].hash,
+            last_hash: this.chain[0].lastHash,
+            cns_paciente: this.chain[0].cnsPaciente,
+            timestamp: this.chain[0].timestamp
+        }).then(() => {
+            console.log('Bloco gênesis inserido no banco');
+        }).catch(err => {
+            throw err;
+        });
     }
 
     addBlock(laudo, cnsPaciente) {
