@@ -33,7 +33,7 @@ $(document).ready(function() {
         const laudoData = {
             operacao: 'create',
             PacienteID: $('#paciente').val(),
-            NomeMedico: 'Dr. Exemplo',  // Nome do médico fixo ou dinâmico conforme necessidade
+            //NomeMedico: 'Dr. Exemplo',  // Nome do médico fixo ou dinâmico conforme necessidade
             DataHoraInicio: formatarDataParaSQL(dataAtual),
             DataHoraFim: formatarDataParaSQL(dataAtual),
             SintomasRelatados: $('#symptoms').val(),
@@ -50,6 +50,24 @@ $(document).ready(function() {
 
         $.ajax({
             url: '../Backend/laudosModel.php',
+            type: 'POST',
+            data: laudoData,
+            dataType: 'json',
+            success: function(response) {
+                if (response.type === 'success') {
+                    alert(response.message);
+                    $('#laudoForm')[0].reset();
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('Erro ao salvar o laudo');
+            }
+        });
+
+        $.ajax({
+            url: 'http://ec2-3-139-93-192.us-east-2.compute.amazonaws.com:3001/9876543210/novo-laudo',
             type: 'POST',
             data: laudoData,
             dataType: 'json',
