@@ -12,6 +12,10 @@ class Block {
         this.difficulty = difficulty || DIFFICULTY;
     }
 
+    addLaudo(laudo) {
+        this.laudo.push(laudo);
+    }
+
     toString() {
         return `Block: "
             timestamp = "${this.timestamp}"
