@@ -7,34 +7,81 @@ const db = new Database(dbConfig);
 
 class Blockchain {
     constructor() {
-        this.chain = [Block.genesis()];
+        this.chain = [];
 
-        // insere no banco da blockchain
-        db.query('INSERT INTO block SET ?', {
-            hash: this.chain[0].hash,
-            last_hash: this.chain[0].lastHash,
-            cns_paciente: this.chain[0].cnsPaciente,
-            timestamp: this.chain[0].timestamp
-        }).then(() => {
-            console.log('Bloco gênesis inserido no banco');
-        }).catch(err => {
+        // verifica se o bloco gênesis já foi inserido no banco
+        const genesisBlock = Block.genesis();
+        db.query('SELECT cns FROM block WHERE hash = ?', genesisBlock.hash)
+        .then(result => {
+            if (result.length === 0) {
+                return db.query('INSERT INTO block SET ?', {
+                    hash: genesisBlock.hash,
+                    last_hash: genesisBlock.lastHash,
+                    cns: genesisBlock.cns,
+                    timestamp: genesisBlock.timestamp
+                });
+            } else {
+                console.log('Bloco gênesis já inserido no banco');
+            }
+        })
+        .then(() => db.query('SELECT * FROM block'))
+        .then(blocksResult => {
+            const blockPromises = blocksResult.map(blockData => {
+                let blockJson = {
+                    timestamp: blockData.timestamp,
+                    lastHash: blockData.last_hash,
+                    hash: blockData.hash,
+                    cns: blockData.cns,
+                    laudos: []
+                };
+
+                return db.query('SELECT * FROM laudos WHERE block_hash = ?', blockJson.hash)
+                    .then(laudosResult => {
+                        const laudoPromises = laudosResult.map(laudoData => {
+                            let laudo = {
+                                data_hora_inicio_consulta: laudoData.data_hora_inicio_consulta,
+                                data_hora_fim_consulta: laudoData.data_hora_fim_consulta,
+                                nome_medico: laudoData.nome_medico,
+                                diagnostico: laudoData.diagnostico,
+                                sintomas_relatados: laudoData.sintomas_relatados,
+                                tratamento_sugerido: laudoData.tratamento_sugerido,
+                                remedios: []
+                            };
+
+                            return db.query('SELECT * FROM remedios WHERE id_laudo = ?', laudoData.id_laudo)
+                                .then(remediosResult => {
+                                    laudo.remedios.push(...remediosResult);
+                                    blockJson.laudos.push(laudo);
+                                });
+                        });
+
+                        return Promise.all(laudoPromises).then(() => {
+                            this.chain.push(blockJson);
+                            console.log('Bloco inserido no array chain: \n', blockJson);
+                        });
+            });
+            });
+
+            return Promise.all(blockPromises);
+        })
+        .catch(err => {
             throw err;
         });
     }
 
-    addBlock(laudo, cnsPaciente) {
+    addBlock(laudo, cns) {
         if (!Array.isArray(laudo)) {
             laudo = [laudo];
         }
-        const block = Block.mineBlock(this.chain[this.chain.length - 1], cnsPaciente, laudo);
+        const block = Block.mineBlock(this.chain[this.chain.length - 1], cns, laudo);
         this.chain.push(block);
 
         return block;
     }
 
-    lookForCns(cnsPaciente) {
+    lookForCns(cns) {
         for (let block of this.chain) {
-            if (block.cnsPaciente === cnsPaciente) {
+            if (parseInt(block.cns) === parseInt(cns)) {
                 return block;
             }
         }
@@ -42,16 +89,14 @@ class Blockchain {
         return null;
     }
 
-    updateBlock(cnsPaciente, laudo) {
-        let block = this.lookForCns(cnsPaciente);
+    updateBlock(cns, laudo) {
+        let block = this.lookForCns(cns);
 
         if (block !== null) {
             if (!Array.isArray(laudo)) {
-                block.laudo.push(laudo); // se laudo não for um array, adiciona o laudo ao array
-                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
+                block.laudos.push(laudo); // se laudo não for um array, adiciona o laudo ao array
             } else {
-                block.laudo.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
-                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
+                block.laudos.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
             }
         } else {
             console.log('Paciente não encontrado');
