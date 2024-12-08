@@ -21,7 +21,7 @@ app.get('/laudos/:cns', (req, res) => {
     const pacienteBlock = bc.lookForCns(cnsPaciente);
 
     if (pacienteBlock !== null) {
-        res.json(pacienteBlock.laudo);
+        res.json(pacienteBlock.laudos);
     } else {
         res.status(404).json({error: 'Paciente não encontrado'});
     }
@@ -29,13 +29,21 @@ app.get('/laudos/:cns', (req, res) => {
 
 app.post('/:cnsPaciente/novo-paciente', (req, res) => {
     const cnsPaciente = Object.values(req.params)[0];
+    const laudo = req.body;
 
-    if (bc.lookForCns(cnsPaciente) == null) {
-        const block = bc.addBlock(req.body, cnsPaciente);
-        if (block !== null) {
-            p2pServer.syncChains();
-            res.status(200).redirect('/laudos');
-            console.log(`Novo paciente adicionado: ${block.toString()}`);
+    // verifica se o paciente já foi inserido no banco
+    db.query('SELECT * FROM block WHERE cns_paciente = ?', cnsPaciente).then(blocoBanco => {
+        if (blocoBanco.length === 0 && bc.lookForCns(cnsPaciente) == null) {
+            // insere na blockchain
+            const block = bc.addBlock(laudo, cnsPaciente);
+            if (block !== null) {
+                p2pServer.syncChains();
+                res.status(200).redirect('/laudos');
+                console.log(`Novo paciente adicionado: ${block.toString()}`);
+            } else {
+                res.status(400).json({ error: 'Não foi possível adicionar paciente' });
+                console.log(`Não foi possível adicionar paciente`);
+            }
 
             // insere no banco da blockchain
             db.query('INSERT INTO block SET ?', {
@@ -46,9 +54,7 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
             }).then(() => {
                 console.log('Bloco inserido no banco');
 
-            // insere na tabela laudos
-                const laudo = req.body;
-
+                // insere o laudo no banco
                 db.query('INSERT INTO laudos SET ?', {
                     data_hora_inicio_consulta: laudo.data_hora_inicio_consulta,
                     data_hora_fim_consulta: laudo.data_hora_fim_consulta,
@@ -57,9 +63,9 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
                     sintomas_relatados: laudo.sintomas_relatados,
                     tratamento_sugerido: laudo.tratamento_sugerido,
                     block_hash: block.hash
-                }).then(result => {
+                }).then(laudoInserido => {
                     console.log('Laudo inserido no banco');
-                    const laudoId = result.insertId;
+                    const laudoId = laudoInserido.insertId;
 
                     const remediosPromises = laudo.remedios.map(remedio => {
                         return db.query('INSERT INTO remedios SET ?', {
@@ -72,59 +78,66 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
 
                     return Promise.all(remediosPromises);
                 });
-            }).catch(err => {
-                throw err;
-            });
+                }).catch(err => {
+                    throw err;
+                });
         } else {
-            res.status(400).json({ error: 'Não foi possível adicionar paciente' });
-            console.log(`Não foi possível adicionar paciente`);
+            res.status(403).json({ error: 'Paciente já cadastrado no banco' });
         }
-    } else {
-        res.status(400).json({ error: 'Paciente já cadastrado' });
-        console.log(`Paciente já cadastrado`);
-    }
+    }).catch(err => {
+        throw err;
+    });
 })
 
 app.put('/:cnsPaciente/novo-laudo', (req, res) => {
     const cnsPaciente = Object.values(req.params)[0];
     const laudo = req.body;
 
-    // insere na tabela laudos
-    db.query('INSERT INTO laudos SET ?', {
-        data_hora_inicio_consulta: laudo.data_hora_inicio_consulta,
-        data_hora_fim_consulta: laudo.data_hora_fim_consulta,
-        nome_medico: laudo.nome_medico,
-        diagnostico: laudo.diagnostico,
-        sintomas_relatados: laudo.sintomas_relatados,
-        tratamento_sugerido: laudo.tratamento_sugerido,
-        block_hash: block.hash
-    }).then(result => {
-        console.log('Laudo inserido no banco');
-
-        const laudoId = result.insertId;
-
-        const remediosPromises = laudo.remedios.map(remedio => {
-            return db.query('INSERT INTO remedios SET ?', {
-                dosagem: remedio.dosagem,
-                forma_farmaceutica: remedio.forma_farmaceutica,
-                nome: remedio.nome,
-                id_laudo: laudoId
-            });
-        });
-
-        Promise.all(remediosPromises).then(() => {
-            console.log('Remédios inseridos no banco');
-        }).catch(err => {
-            console.error('Erro ao inserir remédios no banco: ', err);
-        });
-    }).then(() => {
-        const block = bc.updateBlock(cnsPaciente, req.body);
-        if (block !== null) {
-            console.log(`Novo laudo adicionado ao cns ${cnsPaciente}`);
-            res.status(200).json({ success: `Novo laudo adicionado ao cns ${cnsPaciente}`});
-            p2pServer.syncChains();
+    // verifica se o paciente está cadastrado no banco
+    db.query('SELECT hash FROM block WHERE cns_paciente = ?', cnsPaciente).then(hashBlocoBanco => {
+        if (hashBlocoBanco.length === 0) {
+            res.status(404).json({ error: 'Paciente não encontrado no banco da blockchain' });
         } else {
-            res.status(404).json({ error: 'Paciente não encontrado' });
+            // insere na tabela laudos
+            db.query('INSERT INTO laudos SET ?', {
+                data_hora_inicio_consulta: laudo.data_hora_inicio_consulta,
+                data_hora_fim_consulta: laudo.data_hora_fim_consulta,
+                nome_medico: laudo.nome_medico,
+                diagnostico: laudo.diagnostico,
+                sintomas_relatados: laudo.sintomas_relatados,
+                tratamento_sugerido: laudo.tratamento_sugerido,
+                block_hash: hashBlocoBanco[0].hash
+            }).then(result => {
+                console.log('Laudo inserido no banco');
+
+                const laudoId = result.insertId;
+
+                const remediosPromises = laudo.remedios.map(remedio => {
+                    return db.query('INSERT INTO remedios SET ?', {
+                        dosagem: remedio.dosagem,
+                        forma_farmaceutica: remedio.forma_farmaceutica,
+                        nome: remedio.nome,
+                        id_laudo: laudoId
+                    });
+                });
+
+                Promise.all(remediosPromises).then(() => {
+                    console.log('Remédios inseridos no banco');
+                }).catch(err => {
+                    console.error('Erro ao inserir remédios no banco: ', err);
+                });
+            }).then(() => {
+                const block = bc.updateBlock(cnsPaciente, req.body);
+                if (block !== null) {
+                    console.log(`Novo laudo adicionado ao cns ${cnsPaciente}`);
+                    res.status(200).json({ success: `Novo laudo adicionado ao cns ${cnsPaciente}`});
+                    p2pServer.syncChains();
+                } else {
+                    res.status(404).json({ error: 'Paciente não encontrado na blockchaib' });
+                }
+            }).catch(err => {
+                throw err;
+            });
         }
     }).catch(err => {
         throw err;

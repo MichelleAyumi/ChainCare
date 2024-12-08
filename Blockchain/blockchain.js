@@ -1,5 +1,4 @@
 const Block = require('./block');
-const Laudo = require('./laudo');
 const Database = require('./database');
 
 const dbConfig = Database.credentials();
@@ -28,25 +27,39 @@ class Blockchain {
         .then(() => db.query('SELECT * FROM block'))
         .then(blocksResult => {
             const blockPromises = blocksResult.map(blockData => {
-                let block = new Block(blockData.timestamp, blockData.last_hash, blockData.hash, blockData.cns_paciente);
+                let blockJson = {
+                    timestamp: blockData.timestamp,
+                    lastHash: blockData.last_hash,
+                    hash: blockData.hash,
+                    cns_paciente: blockData.cns_paciente,
+                    laudos: []
+                };
 
-                return db.query('SELECT * FROM laudos WHERE block_hash = ?', block.hash)
+                return db.query('SELECT * FROM laudos WHERE block_hash = ?', blockJson.hash)
                     .then(laudosResult => {
                         const laudoPromises = laudosResult.map(laudoData => {
-                            let laudo = new Laudo(laudoData.data_hora_inicio_consulta, laudoData.data_hora_fim_consulta, laudoData.nome_medico, laudoData.diagnostico, laudoData.sintomas_relatados, laudoData.tratamento_sugerido);
+                            let laudo = {
+                                data_hora_inicio_consulta: laudoData.data_hora_inicio_consulta,
+                                data_hora_fim_consulta: laudoData.data_hora_fim_consulta,
+                                nome_medico: laudoData.nome_medico,
+                                diagnostico: laudoData.diagnostico,
+                                sintomas_relatados: laudoData.sintomas_relatados,
+                                tratamento_sugerido: laudoData.tratamento_sugerido,
+                                remedios: []
+                            };
 
                             return db.query('SELECT * FROM remedios WHERE id_laudo = ?', laudoData.id_laudo)
                                 .then(remediosResult => {
                                     laudo.remedios.push(...remediosResult);
-                                    block.addLaudo(laudo);
+                                    blockJson.laudos.push(laudo);
                                 });
                         });
 
                         return Promise.all(laudoPromises).then(() => {
-                            this.chain.push(block);
-                            console.log('Bloco inserido no array chain: \n', block);
+                            this.chain.push(blockJson);
+                            console.log('Bloco inserido no array chain: \n', blockJson);
                         });
-                    });
+            });
             });
 
             return Promise.all(blockPromises);
@@ -68,7 +81,7 @@ class Blockchain {
 
     lookForCns(cnsPaciente) {
         for (let block of this.chain) {
-            if (block.cnsPaciente === cnsPaciente) {
+            if (parseInt(block.cns_paciente) === parseInt(cnsPaciente)) {
                 return block;
             }
         }
@@ -81,11 +94,9 @@ class Blockchain {
 
         if (block !== null) {
             if (!Array.isArray(laudo)) {
-                block.laudo.push(laudo); // se laudo não for um array, adiciona o laudo ao array
-                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
+                block.laudos.push(laudo); // se laudo não for um array, adiciona o laudo ao array
             } else {
-                block.laudo.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
-                // this.chain = this.chain.map(element => element.cnsPaciente === cnsPaciente ? block : element);
+                block.laudos.push(...laudo); // se laudo for um array, adiciona cada elemento do array ao array de laudos
             }
         } else {
             console.log('Paciente não encontrado');
