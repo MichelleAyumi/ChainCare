@@ -11,68 +11,47 @@ class Blockchain {
         this.chain = [];
 
         // verifica se o bloco gênesis já foi inserido no banco
-        db.query('SELECT cns_paciente FROM block WHERE hash = ?', Block.genesis().hash).then(result => {
+        const genesisBlock = Block.genesis();
+        db.query('SELECT cns_paciente FROM block WHERE hash = ?', genesisBlock.hash)
+        .then(result => {
             if (result.length === 0) {
-                // insere no banco da blockchain
-                db.query('INSERT INTO block SET ?', {
-                    hash: this.chain[0].hash,
-                    last_hash: this.chain[0].lastHash,
-                    cns_paciente: this.chain[0].cnsPaciente,
-                    timestamp: this.chain[0].timestamp
-                }).then(() => {
-                    console.log('Bloco gênesis inserido no banco');
-                }).catch(err => {
-                    throw err;
+                return db.query('INSERT INTO block SET ?', {
+                    hash: genesisBlock.hash,
+                    last_hash: genesisBlock.lastHash,
+                    cns_paciente: genesisBlock.cnsPaciente,
+                    timestamp: genesisBlock.timestamp
                 });
             } else {
                 console.log('Bloco gênesis já inserido no banco');
             }
-        }).catch(err => {
-            throw err;
-        });
+        })
+        .then(() => db.query('SELECT * FROM block'))
+        .then(blocksResult => {
+            const blockPromises = blocksResult.map(blockData => {
+                let block = new Block(blockData.timestamp, blockData.last_hash, blockData.hash, blockData.cns_paciente);
 
-        // pega todas as informações dos blocos do banco e insere no array chain
-        db.query('SELECT * FROM block').then(result => {
-            for (let i = 0; i < result.length; i++) {
-                let block = new Block(result[i].timestamp, result[i].last_hash, result[i].hash, result[i].cns_paciente);
+                return db.query('SELECT * FROM laudos WHERE block_hash = ?', block.hash)
+                    .then(laudosResult => {
+                        const laudoPromises = laudosResult.map(laudoData => {
+                            let laudo = new Laudo(laudoData.data_hora_inicio_consulta, laudoData.data_hora_fim_consulta, laudoData.nome_medico, laudoData.diagnostico, laudoData.sintomas_relatados, laudoData.tratamento_sugerido);
 
-                // pega todas as informações dos laudos do banco e insere no array laudo do bloco
-                db.query('SELECT * FROM laudos WHERE block_hash = ?', block.hash).then(laudoBanco => {
-                    if(laudoBanco.length === 0) {
-                        console.log('nenhum laudo encontrado'); // remover essa linha
-                    }
-                    for (let indiceLaudoBanco = 0; indiceLaudoBanco < laudoBanco.length; indiceLaudoBanco++) {
-                        console.log('laudo atual: ', laudoBanco[indiceLaudoBanco]);
-
-                        let laudo = new Laudo(laudoBanco[indiceLaudoBanco].data_hora_inicio_consulta, laudoBanco[indiceLaudoBanco].data_hora_fim_consulta, laudoBanco[indiceLaudoBanco].nome_medico, laudoBanco[indiceLaudoBanco].diagnostico, laudoBanco[indiceLaudoBanco].sintomas_relatados, laudoBanco[indiceLaudoBanco].tratamento_sugerido);
-
-                        block.laudo.push(laudo);
-                        console.log('Laudo inserido no bloco: ', block.laudo);
-
-                        // pega todas as informações dos remédios do banco e insere no array remedios do laudo
-                        db.query('SELECT * FROM remedios WHERE id_laudo = ?', laudoBanco[indiceLaudoBanco].id_laudo).then(remedioBanco => {
-                            if (remedioBanco.length === 0) {
-                                console.log('nenhum remédio encontrado')
-                                block.addLaudo(laudo);
-                            } else {
-                                for (let indiceRemedioBanco = 0; indiceRemedioBanco < remedioBanco.length; indiceRemedioBanco++) {
-                                    laudo.remedios.push(remedioBanco[indiceRemedioBanco]);
-                                }
-                                console.log('laudo.remedios: ', laudo.remedios);
-                                block.addLaudo(laudo);
-                            }
-                        }).catch(err => {
-                            throw err;
+                            return db.query('SELECT * FROM remedios WHERE id_laudo = ?', laudoData.id_laudo)
+                                .then(remediosResult => {
+                                    laudo.remedios.push(...remediosResult);
+                                    block.addLaudo(laudo);
+                                });
                         });
-                    }
-                }).catch(err => {
-                    throw err;
-                });
 
-                this.chain.push(block);
-                console.log('Bloco inserido no array chain: ', block);
-            }
-        }).catch(err => {
+                        return Promise.all(laudoPromises).then(() => {
+                            this.chain.push(block);
+                            console.log('Bloco inserido no array chain: \n', block);
+                        });
+                    });
+            });
+
+            return Promise.all(blockPromises);
+        })
+        .catch(err => {
             throw err;
         });
     }
