@@ -54,30 +54,36 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
             }).then(() => {
                 console.log('Bloco inserido no banco');
 
-                // insere o laudo no banco
-                db.query('INSERT INTO laudos SET ?', {
-                    data_hora_inicio_consulta: laudo.data_hora_inicio_consulta,
-                    data_hora_fim_consulta: laudo.data_hora_fim_consulta,
-                    nome_medico: laudo.nome_medico,
-                    diagnostico: laudo.diagnostico,
-                    sintomas_relatados: laudo.sintomas_relatados,
-                    tratamento_sugerido: laudo.tratamento_sugerido,
-                    block_hash: block.hash
-                }).then(laudoInserido => {
-                    console.log('Laudo inserido no banco');
-                    const laudoId = laudoInserido.insertId;
+                if (laudo.hasOwnProperty('remedios')) {
+                    if (laudo.remedios.length > 0) {
+                        // insere o laudo no banco
+                        db.query('INSERT INTO laudos SET ?', {
+                            data_hora_inicio_consulta: laudo.data_hora_inicio_consulta,
+                            data_hora_fim_consulta: laudo.data_hora_fim_consulta,
+                            nome_medico: laudo.nome_medico,
+                            diagnostico: laudo.diagnostico,
+                            sintomas_relatados: laudo.sintomas_relatados,
+                            tratamento_sugerido: laudo.tratamento_sugerido,
+                            block_hash: block.hash
+                        }).then(laudoInserido => {
+                            console.log('Laudo inserido no banco');
+                            const laudoId = laudoInserido.insertId;
 
-                    const remediosPromises = laudo.remedios.map(remedio => {
-                        return db.query('INSERT INTO remedios SET ?', {
-                            dosagem: remedio.dosagem,
-                            forma_farmaceutica: remedio.forma_farmaceutica,
-                            nome: remedio.nome,
-                            id_laudo: laudoId
+                            if (laudo.remedios.length > 0) {
+                                const remediosPromises = laudo.remedios.map(remedio => {
+                                    return db.query('INSERT INTO remedios SET ?', {
+                                        dosagem: remedio.dosagem,
+                                        forma_farmaceutica: remedio.forma_farmaceutica,
+                                        nome: remedio.nome,
+                                        id_laudo: laudoId
+                                    });
+                                });
+
+                                return Promise.all(remediosPromises);
+                            }
                         });
-                    });
-
-                    return Promise.all(remediosPromises);
-                });
+                    }
+                }
                 }).catch(err => {
                     throw err;
                 });
