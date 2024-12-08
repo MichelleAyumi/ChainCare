@@ -11,13 +11,13 @@ class Blockchain {
 
         // verifica se o bloco gênesis já foi inserido no banco
         const genesisBlock = Block.genesis();
-        db.query('SELECT cns_paciente FROM block WHERE hash = ?', genesisBlock.hash)
+        db.query('SELECT cns FROM block WHERE hash = ?', genesisBlock.hash)
         .then(result => {
             if (result.length === 0) {
                 return db.query('INSERT INTO block SET ?', {
                     hash: genesisBlock.hash,
                     last_hash: genesisBlock.lastHash,
-                    cns_paciente: genesisBlock.cnsPaciente,
+                    cns: genesisBlock.cns,
                     timestamp: genesisBlock.timestamp
                 });
             } else {
@@ -31,7 +31,7 @@ class Blockchain {
                     timestamp: blockData.timestamp,
                     lastHash: blockData.last_hash,
                     hash: blockData.hash,
-                    cns_paciente: blockData.cns_paciente,
+                    cns: blockData.cns,
                     laudos: []
                 };
 
@@ -69,19 +69,19 @@ class Blockchain {
         });
     }
 
-    addBlock(laudo, cnsPaciente) {
+    addBlock(laudo, cns) {
         if (!Array.isArray(laudo)) {
             laudo = [laudo];
         }
-        const block = Block.mineBlock(this.chain[this.chain.length - 1], cnsPaciente, laudo);
+        const block = Block.mineBlock(this.chain[this.chain.length - 1], cns, laudo);
         this.chain.push(block);
 
         return block;
     }
 
-    lookForCns(cnsPaciente) {
+    lookForCns(cns) {
         for (let block of this.chain) {
-            if (parseInt(block.cns_paciente) === parseInt(cnsPaciente)) {
+            if (parseInt(block.cns) === parseInt(cns)) {
                 return block;
             }
         }
@@ -89,8 +89,8 @@ class Blockchain {
         return null;
     }
 
-    updateBlock(cnsPaciente, laudo) {
-        let block = this.lookForCns(cnsPaciente);
+    updateBlock(cns, laudo) {
+        let block = this.lookForCns(cns);
 
         if (block !== null) {
             if (!Array.isArray(laudo)) {

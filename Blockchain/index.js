@@ -17,8 +17,8 @@ app.get('/laudos', (req, res) => {
 });
 
 app.get('/laudos/:cns', (req, res) => {
-    const cnsPaciente = Object.values(req.params)[0];
-    const pacienteBlock = bc.lookForCns(cnsPaciente);
+    const cns = Object.values(req.params)[0];
+    const pacienteBlock = bc.lookForCns(cns);
 
     if (pacienteBlock !== null) {
         res.json(pacienteBlock.laudos);
@@ -27,15 +27,15 @@ app.get('/laudos/:cns', (req, res) => {
     }
 });
 
-app.post('/:cnsPaciente/novo-paciente', (req, res) => {
-    const cnsPaciente = Object.values(req.params)[0];
+app.post('/:cns/novo-paciente', (req, res) => {
+    const cns = Object.values(req.params)[0];
     const laudo = req.body;
 
     // verifica se o paciente já foi inserido no banco
-    db.query('SELECT * FROM block WHERE cns_paciente = ?', cnsPaciente).then(blocoBanco => {
-        if (blocoBanco.length === 0 && bc.lookForCns(cnsPaciente) == null) {
+    db.query('SELECT * FROM block WHERE cns = ?', cns).then(blocoBanco => {
+        if (blocoBanco.length === 0 && bc.lookForCns(cns) == null) {
             // insere na blockchain
-            const block = bc.addBlock(laudo, cnsPaciente);
+            const block = bc.addBlock(laudo, cns);
             if (block !== null) {
                 p2pServer.syncChains();
                 res.status(200).redirect('/laudos');
@@ -49,7 +49,7 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
             db.query('INSERT INTO block SET ?', {
                 hash: block.hash,
                 last_hash: block.lastHash,
-                cns_paciente: block.cnsPaciente,
+                cns: block.cns,
                 timestamp: block.timestamp
             }).then(() => {
                 console.log('Bloco inserido no banco');
@@ -95,12 +95,12 @@ app.post('/:cnsPaciente/novo-paciente', (req, res) => {
     });
 })
 
-app.put('/:cnsPaciente/novo-laudo', (req, res) => {
-    const cnsPaciente = Object.values(req.params)[0];
+app.put('/:cns/novo-laudo', (req, res) => {
+    const cns = Object.values(req.params)[0];
     const laudo = req.body;
 
     // verifica se o paciente está cadastrado no banco
-    db.query('SELECT hash FROM block WHERE cns_paciente = ?', cnsPaciente).then(hashBlocoBanco => {
+    db.query('SELECT hash FROM block WHERE cns = ?', cns).then(hashBlocoBanco => {
         if (hashBlocoBanco.length === 0) {
             res.status(404).json({ error: 'Paciente não encontrado no banco da blockchain' });
         } else {
@@ -133,13 +133,13 @@ app.put('/:cnsPaciente/novo-laudo', (req, res) => {
                     console.error('Erro ao inserir remédios no banco: ', err);
                 });
             }).then(() => {
-                const block = bc.updateBlock(cnsPaciente, req.body);
+                const block = bc.updateBlock(cns, req.body);
                 if (block !== null) {
-                    console.log(`Novo laudo adicionado ao cns ${cnsPaciente}`);
-                    res.status(200).json({ success: `Novo laudo adicionado ao cns ${cnsPaciente}`});
+                    console.log(`Novo laudo adicionado ao cns ${cns}`);
+                    res.status(200).json({ success: `Novo laudo adicionado ao cns ${cns}`});
                     p2pServer.syncChains();
                 } else {
-                    res.status(404).json({ error: 'Paciente não encontrado na blockchaib' });
+                    res.status(404).json({ error: 'Paciente não encontrado na blockchain' });
                 }
             }).catch(err => {
                 throw err;
