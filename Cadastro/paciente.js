@@ -27,4 +27,28 @@ $(document).ready(function () {
             }
         });
     });
+
+    $('#blockchainBtn').click(function (e) {
+        e.preventDefault();
+
+        const cns = $('#cns').val();
+
+        console.log(cns);
+        $.ajax({
+            url: `http://localhost:3001/${cns}/novo-paciente`,  
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({}),  
+            success: function (response) {
+                alert('Paciente salvo na blockchain com sucesso!');
+            },
+            error: function () {
+                alert("Erro ao salvar paciente na blockchain.");
+            }
+        });
+    });
+    
+
+    
+    
 });
